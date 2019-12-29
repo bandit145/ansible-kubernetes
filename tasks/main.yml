@@ -1,0 +1,63 @@
+---
+- name: main | disable swap if on
+  command: swapoff -a
+  when: ansible_swaptotal_mb != 0
+
+- name: main | remove swap from fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: swap
+    state: absent
+
+# tasks file for ansible-kubernetes
+- name: main | prep sysctl for cri-o
+  sysctl:
+    name: "{{ item }}"
+    sysctl_set: true
+    value: "1"
+    sysctl_file: /etc/sysctl.d/99-kubernetes-cri.conf
+  loop:
+    - net.bridge.bridge-nf-call-iptables
+    - net.ipv4.ip_forward
+    - net.bridge.bridge-nf-call-ip6tables
+
+- name: main | copy k8s repo
+  template:
+    src: kubernetes.repo
+    dest: /etc/yum.repos.d/
+
+- name: main | configure cri-o repo
+  yum_repository:
+    name: cri-o
+    description: cri-o container runtime repo
+    baseurl:  https://cbs.centos.org/repos/paas7-crio-115-release/x86_64/os/
+
+- name: main | install crio
+  yum:
+    name: crio
+    disable_gpg_check: true
+    enablerepo: cri-o
+
+- name: main | install base requirements
+  yum:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+      - kubernetes-cni
+      - crio
+    enablerepo: kubernetes
+
+- name: main | start and enable cri-o
+  service:
+    name: crio
+    state: started
+    enabled: true
+
+- name: main | run master configuration
+  include_tasks: master.yml
+  when: hostvars[inventory_hostname].master is defined
+
+- name: main | run worker configuration
+  include_tasks: worker.yml
+  when: hostvars[inventory_hostname].master is defined

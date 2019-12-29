@@ -1,0 +1,23 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+
+  tasks:
+    - name: set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: set /etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          192.168.200.2 master 
+          192.168.200.3 worker-1
+          192.168.200.4 worker-2
+
+    - name: load kernel mods
+      command: modprobe {{ item }}
+      loop:
+        - overlay
+        - br_netfilter
