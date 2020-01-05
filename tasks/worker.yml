@@ -1,0 +1,15 @@
+---
+
+- name: worker | open worker ports
+  firewalld:
+    port: "{{ item }}/tcp"
+    permanent: true
+    state: enabled
+  loop:
+    - 10250
+    - 30000-32767
+
+- name: worker | join worker to cluster
+  shell: "{{ hostvars.localhost.node_join_cmd }}"
+  args:
+    creates:  /etc/kubernetes/pki/ca.crt

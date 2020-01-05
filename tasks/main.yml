@@ -10,7 +10,7 @@
     state: absent
 
 # tasks file for ansible-kubernetes
-- name: main | prep sysctl for cri-o
+- name: main | prep sysctl for container runtime
   sysctl:
     name: "{{ item }}"
     sysctl_set: true
@@ -23,20 +23,11 @@
 
 - name: main | copy k8s repo
   template:
-    src: kubernetes.repo
+    src: "{{ item }}"
     dest: /etc/yum.repos.d/
-
-- name: main | configure cri-o repo
-  yum_repository:
-    name: cri-o
-    description: cri-o container runtime repo
-    baseurl:  https://cbs.centos.org/repos/paas7-crio-115-release/x86_64/os/
-
-- name: main | install crio
-  yum:
-    name: crio
-    disable_gpg_check: true
-    enablerepo: cri-o
+  loop:
+    - docker-ce.repo
+    - kubernetes.repo
 
 - name: main | install base requirements
   yum:
@@ -44,20 +35,31 @@
       - kubelet
       - kubeadm
       - kubectl
+      - docker-ce
       - kubernetes-cni
-      - crio
-    enablerepo: kubernetes
+      - yum-utils 
+      - device-mapper-persistent-data 
+      - lvm2
+    enablerepo: kubernetes,docker-ce-stable
 
-- name: main | start and enable cri-o
+- name: main | copy docker daemon file
+  copy:
+    src: daemon.json
+    dest: /etc/docker/
+
+- name: main | start and enable docker
   service:
-    name: crio
+    name: docker
     state: started
     enabled: true
 
 - name: main | run master configuration
   include_tasks: master.yml
-  when: hostvars[inventory_hostname].master is defined
+  when: hostvars[inventory_hostname].k8s_master is defined
+
+- debug:
+    var: hostvars.localhost.node_join_cmd
 
 - name: main | run worker configuration
   include_tasks: worker.yml
-  when: hostvars[inventory_hostname].master is defined
+  when: hostvars[inventory_hostname].k8s_master is not defined
