@@ -5,24 +5,45 @@
     url: https://github.com/linkerd/linkerd2/releases/download/edge-{{ k8s_linkerd_ver }}/linkerd2-cli-edge-{{ k8s_linkerd_ver }}-linux
     dest: /usr/bin/linkerd
     mode: 0755
-    checksum: sha256:{{ lookup('url', 'https://github.com/linkerd/linkerd2/releases/download/edge-{{ k8s_linkerd_ver }}/linkerd2-cli-edge-{{ k8s_linkerd_ver }}-linux.sha256') }} 
+    checksum: sha256:{{ lookup('url', 'https://github.com/linkerd/linkerd2/releases/download/edge-{{ k8s_linkerd_ver }}/linkerd2-cli-edge-{{ k8s_linkerd_ver }}-linux.sha256') }}
 
-- name: linkerd | check cluster
-  command: linkerd check --pre
+- name: linkerd | check if linkerd is already installed
+  k8s_info:
+    host: "https://{{ k8s_api_endpoint }}:6443"
+    kubeconfig: "{{ k8s_admin_config_location }}"
+    namespace: linkerd
+    kind: Deployment
+  register: linkerd_facts
+  delegate_to: localhost
+  when: inventory_hostname == operation_master
+
+# - name: linkerd | check cluster
+#   command: linkerd check --pre
+#   environment:
+#     KUBECONFIG: /etc/kubernetes/admin.conf
+#   any_errors_fatal: true
+#   when: inventory_hostname == operation_master
+
+- name: linkerd | get manifest
+  shell: linkerd install
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
-  any_errors_fatal: true
-  when: inventory_hostname == operation_master
+  when:
+    - linkerd_facts.resources | length == 0 
+    - inventory_hostname == operation_master
+  register: linkerd_cmd
 
 - name: linkerd | install linkerd
   k8s:
     host: "https://{{ k8s_api_endpoint }}:6443"
-    definition: "{{ lookup('pipe', 'linkerd install') | from_yaml_all | list }}"
+    definition: "{{ linkerd_cmd.stdout }}"
     kubeconfig: "{{ k8s_admin_config_location }}"
   delegate_to: localhost
   become: false
   any_errors_fatal: true
-  when: inventory_hostname == operation_master
+  when:
+    - linkerd_facts.resources | length == 0 
+    - inventory_hostname == operation_master
 
 - name: linkerd | check install
   command: linkerd check

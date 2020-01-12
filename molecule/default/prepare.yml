@@ -21,3 +21,6 @@
       loop:
         - overlay
         - br_netfilter
+
+    - name: update time quickly
+      command: chronyc -a makestep

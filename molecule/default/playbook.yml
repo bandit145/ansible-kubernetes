@@ -8,5 +8,6 @@
     k8s_api_endpoint: 192.168.200.2
     operation_master: master
     k8s_linkerd_ver: 19.12.3
+    k8s_network_iface: eth1
   roles:
     - role: ansible-kubernetes
