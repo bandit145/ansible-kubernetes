@@ -5,7 +5,7 @@
     url: https://github.com/linkerd/linkerd2/releases/download/edge-{{ k8s_linkerd_ver }}/linkerd2-cli-edge-{{ k8s_linkerd_ver }}-linux
     dest: /usr/bin/linkerd
     mode: 0755
-    checksum: sha256:{{ lookup('url', 'https://github.com/linkerd/linkerd2/releases/download/edge-{{ k8s_linkerd_ver }}/linkerd2-cli-edge-{{ k8s_linkerd_ver }}-linux.sha256') }}
+    checksum: sha256:{{ lookup('url', 'https://github.com/linkerd/linkerd2/releases/download/edge-{{ k8s_linkerd_ver }}/linkerd2-cli-edge-{{ k8s_linkerd_ver }}-linux.sha256') }}  # noqa 204
 
 - name: linkerd | check if linkerd is already installed
   k8s_info:
@@ -25,11 +25,12 @@
 #   when: inventory_hostname == operation_master
 
 - name: linkerd | get manifest
+  # noqa 305
   shell: linkerd install
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   when:
-    - linkerd_facts.resources | length == 0 
+    - linkerd_facts.resources | length == 0
     - inventory_hostname == operation_master
   register: linkerd_cmd
 
@@ -42,7 +43,7 @@
   become: false
   any_errors_fatal: true
   when:
-    - linkerd_facts.resources | length == 0 
+    - linkerd_facts.resources | length == 0
     - inventory_hostname == operation_master
 
 - name: linkerd | check install

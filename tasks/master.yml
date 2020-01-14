@@ -36,6 +36,7 @@
   when: inventory_hostname == operation_master
 
 - name: master | get join command
+  # noqa 305
   shell: kubeadm token create --print-join-command
   register: node_join
   when: inventory_hostname == operation_master

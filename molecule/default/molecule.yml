@@ -7,6 +7,9 @@ driver:
     name: virtualbox
 lint:
   name: yamllint
+  options:
+    config-data:
+      ignore: "**/venv/"
 platforms:
   - name: master
     box: bento/centos-7
@@ -55,3 +58,5 @@ verifier:
     log-cli-level: 20
   lint:
     name: flake8
+    options:
+      ignore: E501

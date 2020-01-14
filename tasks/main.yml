@@ -43,8 +43,8 @@
       - kubectl
       - docker-ce
       - kubernetes-cni
-      - yum-utils 
-      - device-mapper-persistent-data 
+      - yum-utils
+      - device-mapper-persistent-data
       - lvm2
     enablerepo: kubernetes,docker-ce-stable
 
@@ -67,7 +67,8 @@
   include_tasks: worker.yml
   when: hostvars[inventory_hostname].k8s_master is not defined
 
-- set_fact:
+- name: main | create json query fact
+  set_fact:
     jq: "[*].metadata | [?contains(name,'flannel-ds')]"
   delegate_to: localhost
   delegate_facts: true
@@ -82,7 +83,7 @@
     field_selectors:
       - status.phase=Running
   register: nodes
-  until: nodes.resources | to_json | from_json | json_query(hostvars.localhost.jq) | length == ansible_play_hosts_all | length 
+  until: nodes.resources | to_json | from_json | json_query(hostvars.localhost.jq) | length == ansible_play_hosts_all | length
   retries: 10
   delay: 10
   delegate_to: localhost
@@ -92,6 +93,12 @@
 - name: main | run linkerd install
   include_tasks: linkerd.yml
   when: hostvars[inventory_hostname].k8s_master is defined
+
+- name: main | run nginx install
+  include_tasks: nginx-ingress.yml
+  when:
+    - hostvars[inventory_hostname].k8s_master is defined
+    - inventory_hostname == operation_master
 
 - name: main | enable kubelet
   service:

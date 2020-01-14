@@ -10,6 +10,7 @@
     - 30000-32767
 
 - name: worker | join worker to cluster
+  # noqa 305
   shell: "{{ hostvars.localhost.node_join_cmd }}"
   args:
     creates:  /etc/kubernetes/pki/ca.crt
