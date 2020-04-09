@@ -40,6 +40,7 @@
   shell: kubeadm token create --print-join-command
   register: node_join
   when: inventory_hostname == operation_master
+  changed_when: false
 
 - name: master | prune join command
   set_fact:

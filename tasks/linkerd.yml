@@ -51,4 +51,5 @@
   environment:
     KUBECONFIG: /etc/kubernetes/admin.conf
   any_errors_fatal: true
+  changed_when: false
   when: inventory_hostname == operation_master

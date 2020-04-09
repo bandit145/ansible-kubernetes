@@ -25,10 +25,11 @@ def test_kubelet_running(host):
     service_enabled(host, 'kubelet')
 
 
-# TODO: figure out why this returns three when a node is down and shoulr report 2 running
+# TODO: figure out why this returns three when a node is down and should report 2 running
 def test_flannel_deployment():
     v1_api = k8s.client.CoreV1Api()
     flannel_pods = v1_api.list_pod_for_all_namespaces(field_selector='status.phase=Running,', label_selector='app=flannel')
+    logging.info(flannel_pods.items)
     logging.info(len(flannel_pods.items))
     assert len(flannel_pods.items) == 3
 

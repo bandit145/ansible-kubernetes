@@ -7,7 +7,7 @@
     version: "{{ k8s_nginx_ingress_ver }}"
   delegate_to: localhost
 
-
+# TODO: template server seceret
 - name: nginx-ingress | deploy nginx ingress
   k8s:
     host: "https://{{ k8s_api_endpoint }}:6443"
@@ -20,6 +20,7 @@
   any_errors_fatal: true
   loop:
     - common/ns-and-sa.yaml
+    - common/default-server-secret.yaml
     - rbac/rbac.yaml
     - common/custom-resource-definitions.yaml
     - daemon-set/nginx-ingress.yaml
