@@ -14,14 +14,15 @@
     definition: "{{ lookup('file', '/tmp/nginx-ingress/deployments/'+item) | from_yaml_all | list }}"
     kubeconfig: "{{ k8s_admin_config_location }}"
     validate:
-      fail_on_error: True
+      fail_on_error: false
   delegate_to: localhost
   become: false
   any_errors_fatal: true
   loop:
     - common/ns-and-sa.yaml
-    - common/default-server-secret.yaml
     - rbac/rbac.yaml
+    - common/default-server-secret.yaml
+    - common/nginx-config.yaml
     - common/custom-resource-definitions.yaml
     - daemon-set/nginx-ingress.yaml
     - service/nodeport.yaml
