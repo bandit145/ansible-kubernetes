@@ -25,19 +25,31 @@ platforms:
     memory: 4096
     cpus: 2
   - name: worker-1
+    provider_raw_config_args:
+      - "customize ['modifyvm', :id, '--nested-hw-virt', 'on']"
     interfaces:
         - network_name: private_network
           type: static
           ip: 192.168.200.3
+        - network_name: private_network
+          auto_config: false
+          ip: 192.168.201.2
+          type: static
     groups:
       - workers
     memory: 4096
     box: bento/centos-7
   - name: worker-2
+    provider_raw_config_args:
+      - "customize ['modifyvm', :id, '--nested-hw-virt', 'on']"
     interfaces:
         - network_name: private_network
           type: static
           ip: 192.168.200.4
+        - network_name: private_network
+          auto_config: false
+          ip: 192.168.201.3
+          type: static
     groups:
       - workers
     memory: 4096

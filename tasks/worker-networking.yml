@@ -1,0 +1,19 @@
+---
+
+- name: worker-networking | install deps
+  yum:
+    name:
+      - openvswitch
+
+- name: worker-networking | enable and start openvswitch
+  service:
+    name: openvswitch
+    state: started
+    enabled: true
+    use: service
+
+- name: worker-networking | add switches
+  openvswitch_bridge:
+    bridge: "{{ item.name }}"
+    state: present
+  loop: "{{ worker_node_bridges }}"

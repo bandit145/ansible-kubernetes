@@ -10,5 +10,7 @@
     k8s_linkerd_ver: 19.12.3
     k8s_network_iface: eth1
     k8s_nginx_ingress_ver: v1.6.0
+    worker_node_bridges:
+      - name: test-br
   roles:
     - role: ansible-kubernetes

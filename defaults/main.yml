@@ -1,3 +1,5 @@
 ---
 # defaults file for ansible-kubernetes
 k8s_admin_config_location: /tmp/kube_admin.conf
+
+ovirt_release: 43
