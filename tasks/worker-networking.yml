@@ -12,6 +12,7 @@
     enabled: true
     use: service
 
+#TODO: diff bridges
 - name: worker-networking | add switches
   openvswitch_bridge:
     bridge: "{{ item.name }}"

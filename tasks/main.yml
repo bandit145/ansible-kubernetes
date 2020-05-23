@@ -27,8 +27,8 @@
     - net.ipv4.ip_forward
     - net.bridge.bridge-nf-call-ip6tables
 
-- name: main | copy k8s repo
-  template:
+- name: main | copy k8s/docker repos
+  copy:
     src: "{{ item }}"
     dest: /etc/yum.repos.d/
   loop:
@@ -45,6 +45,7 @@
       - kubernetes-cni
       - yum-utils
       - device-mapper-persistent-data
+      - python2-cryptography
       - lvm2
     enablerepo: kubernetes,docker-ce-stable
 
@@ -90,9 +91,18 @@
   become: false
   when: inventory_hostname == operation_master
 
+- name: main | install kubevirt
+  include_tasks: kubevirt.yml
+  when:
+    - k8s_kubevirt_install
+    - hostvars[inventory_hostname].k8s_master is defined
+    - inventory_hostname == operation_master
+
 - name: main | run linkerd install
   include_tasks: linkerd.yml
-  when: hostvars[inventory_hostname].k8s_master is defined
+  when: 
+    - hostvars[inventory_hostname].k8s_master is defined
+    - k8s_linkerd_install
 
 - name: main | run nginx install
   include_tasks: nginx-ingress.yml

@@ -8,6 +8,8 @@
   loop:
     - 10250
     - 30000-32767
+    - 80
+    - 443
 
 - name: worker | worker repo
   yum:

@@ -1,6 +1,6 @@
 [kubernetes]
 name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el{{ansible_distribution_major_version}}-{{ ansible_architecture }}
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el$releasever-$basearch
 enabled=0
 gpgcheck=1
 repo_gpgcheck=1
