@@ -7,3 +7,11 @@ k8s_linkerd_install: true
 
 ovirt_release: 43
 kubevirt_version: v0.26.5
+calicoctl_version: 3.16.1
+wireguard_config:
+  apiVersion: crd.projectcalico.org/v1
+  kind: FelixConfiguration
+  metadata:
+    name: default
+  spec:
+    wireguardEnabled: true

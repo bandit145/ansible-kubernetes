@@ -1,10 +1,5 @@
 ---
 
-- name: main | include extra vars
-  include_vars: "{{ item }}.yml"
-  loop:
-    - flannel
-
 - name: main | disable swap if on
   command: swapoff -a
   when: ansible_swaptotal_mb != 0
@@ -43,11 +38,18 @@
       - kubectl
       - docker-ce
       - kubernetes-cni
+      - kmod-wireguard
+      - wireguard-tools
       - yum-utils
       - device-mapper-persistent-data
       - python2-cryptography
       - lvm2
     enablerepo: kubernetes,docker-ce-stable
+  register: installed_packages
+
+- name: main | reboot for wireguard kernel modules
+  reboot:
+  when: installed_packages.changed
 
 - name: main | copy docker daemon file
   copy:
@@ -70,7 +72,7 @@
 
 - name: main | create json query fact
   set_fact:
-    jq: "[*].metadata | [?contains(name,'flannel-ds')]"
+    jq: "[*].metadata | [?contains(name,'calico-node')]"
   delegate_to: localhost
   delegate_facts: true
   when: inventory_hostname == operation_master
@@ -91,21 +93,27 @@
   become: false
   when: inventory_hostname == operation_master
 
+- name: main | deploy cluster networking configurations
+  k8s:
+    host: "https://{{ k8s_api_endpoint }}:6443"
+    definition: "{{ wireguard_config }}"
+    kubeconfig: "{{ k8s_admin_config_location }}"
+    validate:
+      fail_on_error: true 
+  when: inventory_hostname == operation_master
+  delegate_to: localhost
+  become: false
+  any_errors_fatal: true
+
 - name: main | install kubevirt
   include_tasks: kubevirt.yml
-  when:
+  when: 
     - k8s_kubevirt_install
     - hostvars[inventory_hostname].k8s_master is defined
     - inventory_hostname == operation_master
 
-- name: main | run linkerd install
-  include_tasks: linkerd.yml
-  when: 
-    - hostvars[inventory_hostname].k8s_master is defined
-    - k8s_linkerd_install
-
 - name: main | run nginx install
-  include_tasks: nginx-ingress.yml
+  include_tasks: ingress.yml
   when:
     - hostvars[inventory_hostname].k8s_master is defined
     - inventory_hostname == operation_master

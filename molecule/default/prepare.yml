@@ -4,6 +4,12 @@
   become: true
 
   tasks:
+    - name: install required packages
+      yum:
+        name:
+          - epel-release
+          - elrepo-release
+
     - name: set hostname
       hostname:
         name: "{{ inventory_hostname }}"

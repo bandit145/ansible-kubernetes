@@ -66,8 +66,8 @@
 
 - name: nginx-ingress | set self signed certs
   set_fact:
-    k8s_ingress_default_cert: "{{ ingress_self_sign_crt.content | b64encode }}"
-    k8s_ingress_default_key: "{{ ingress_self_sign_key.content | b64encode }}"
+    k8s_ingress_default_cert: "{{ ingress_self_sign_crt.content }}"
+    k8s_ingress_default_key: "{{ ingress_self_sign_key.content }}"
   when:
     - k8s_ingress_default_cert is not defined
 

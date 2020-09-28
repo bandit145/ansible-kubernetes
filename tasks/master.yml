@@ -11,8 +11,6 @@
     - 10250/tcp
     - 10251/tcp
     - 10252/tcp
-    - 8285/udp
-    - 8472/udp
 
 - name: master | kubeadm init
   command: >
@@ -23,10 +21,26 @@
     creates: /etc/kubernetes/pki/ca.key
   when: inventory_hostname == operation_master
 
-- name: master set kubeconfig env
+- name: master | get calicoctl
+  get_url:
+    url: https://github.com/projectcalico/calicoctl/releases/download/v{{ calicoctl_version }}/calicoctl
+    dest: /usr/bin/
+    mode: 0755
+
+- name: master | link calicoctl
+  file:
+    src: /usr/bin/calicoctl
+    dest: /usr/sbin/calicoctl
+    state: link
+    mode: 0755
+
+- name: master | set kubeconfig env
   lineinfile:
     path: /etc/environment
-    line: KUBECONFIG=/etc/kubernetes/admin.conf
+    line: "{{ item }}"
+  loop:
+    - KUBECONFIG=/etc/kubernetes/admin.conf
+    - DATASTORE_TYPE=kubernetes
 
 - name: master | fetch admin kubeconfig
   fetch:
@@ -51,10 +65,10 @@
 - name: master | deploy cluster networking
   k8s:
     host: "https://{{ k8s_api_endpoint }}:6443"
-    definition: "{{ flannel_config }}"
+    definition: "{{ lookup('url', 'https://docs.projectcalico.org/manifests/calico.yaml', split_lines=false) | from_yaml_all | list }}"
     kubeconfig: "{{ k8s_admin_config_location }}"
     validate:
-      fail_on_error: True
+      fail_on_error: false
   when: inventory_hostname == operation_master
   delegate_to: localhost
   become: false
