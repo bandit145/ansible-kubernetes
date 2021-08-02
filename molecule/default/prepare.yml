@@ -22,11 +22,5 @@
           192.168.200.3 worker-1
           192.168.200.4 worker-2
 
-    - name: load kernel mods
-      command: modprobe {{ item }}
-      loop:
-        - overlay
-        - br_netfilter
-
     - name: update time quickly
       command: chronyc -a makestep

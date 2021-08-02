@@ -2,3 +2,6 @@ ansible
 molecule
 jmespath
 openshift
+python-vagrant
+molecule-vagrant!=0.6.3
+kubernetes-validate

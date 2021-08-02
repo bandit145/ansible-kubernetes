@@ -1,95 +1,29 @@
 ---
 
-- name: nginx-ingress | clone repo
-  git:
-    repo: https://github.com/nginxinc/kubernetes-ingress/
-    dest: /tmp/nginx-ingress
-    version: "{{ k8s_nginx_ingress_ver }}"
-  delegate_to: localhost
-
-# TODO: template server seceret
-- name: nginx-ingress | deploy nginx ingress
-  k8s:
-    host: "https://{{ k8s_api_endpoint }}:6443"
-    definition: "{{ lookup('file', '/tmp/nginx-ingress/deployments/'+item) | from_yaml_all | list }}"
-    kubeconfig: "{{ k8s_admin_config_location }}"
-    apply: true
-    validate:
-      fail_on_error: false
+- name: ingress | add trafeik chart repo to helm
+  kubernetes.core.helm_repository:
+    name: traefik
+    repo_url: https://helm.traefik.io/traefik
   delegate_to: localhost
   become: false
-  any_errors_fatal: true
-  loop:
-    - common/ns-and-sa.yaml
-    - rbac/rbac.yaml
-    - common/nginx-config.yaml
-    - common/custom-resource-definitions.yaml
-    - daemon-set/nginx-ingress.yaml
-    - service/nodeport.yaml
 
-- name: nginx-ingress | create self key
-  openssl_privatekey:
-    path: /etc/ssl/ingress_self_sign.key
-  when:
-    - k8s_ingress_default_cert is not defined
-
-- name: nginx-ingress | create self signed csr
-  openssl_csr:
-    path: /etc/ssl/ingress_self_sign.csr
-    privatekey_path: /etc/ssl/ingress_self_sign.key
-    common_name: "{{ k8s_ingress_cert_domain }}"
-  when:
-    - k8s_ingress_default_cert is not defined
-
-- name: nginx-ingress | create self signed cert
-  openssl_certificate:
-    path: /etc/ssl/ingress_self_sign.crt
-    csr_path: /etc/ssl/ingress_self_sign.csr
-    privatekey_path: /etc/ssl/ingress_self_sign.key
-    provider: selfsigned
-  when:
-    - k8s_ingress_default_cert is not defined
-
-- name: nginx-ingress | get self signed cert
-  slurp:
-    src: /etc/ssl/ingress_self_sign.crt
-  register: ingress_self_sign_crt
-  when:
-    - k8s_ingress_default_cert is not defined
-
-- name: nginx-ingress | get self signed key
-  slurp:
-    src: /etc/ssl/ingress_self_sign.key
-  register: ingress_self_sign_key
-  when:
-    - k8s_ingress_default_cert is not defined
-
-- name: nginx-ingress | set self signed certs
-  set_fact:
-    k8s_ingress_default_cert: "{{ ingress_self_sign_crt.content }}"
-    k8s_ingress_default_key: "{{ ingress_self_sign_key.content }}"
-  when:
-    - k8s_ingress_default_cert is not defined
-
-- name: nginx-ingress | set nginx-ingress default cert
-  k8s:
-    host: "https://{{ k8s_api_endpoint }}:6443"
-    definition:
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: default-server-secret
-        namespace: nginx-ingress
-      type: Opaque
-      data:
-        tls.crt: "{{ k8s_ingress_default_cert }}"
-        tls.key: "{{ k8s_ingress_default_key }}"
+- name: ingress | install traefik helm chart
+  kubernetes.core.helm:
+    name: traefik
+    chart_ref: traefik/traefik
+    release_namespace: traefik
     kubeconfig: "{{ k8s_admin_config_location }}"
-    apply: true
-    validate:
-      fail_on_error: false
+    wait: true
+    create_namespace: true
+    values:
+      deployment:
+        kind: DaemonSet
+      service:
+        enabled: false
+      securityContext:
+        capabilities:
+          drop: [ALL]
+          add: [NET_BIND_SERVICE]
   delegate_to: localhost
   become: false
-  any_errors_fatal: true
-  when:
-    - k8s_ingress_default_cert is defined
+

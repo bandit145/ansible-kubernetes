@@ -11,14 +11,6 @@
     - 80
     - 443
 
-- name: worker | worker repo
-  yum:
-    name:
-      - https://resources.ovirt.org/pub/yum-repo/ovirt-release{{ ovirt_release }}.rpm
-
-- name: worker | configure networking
-  include_tasks: worker-networking.yml
-
 - name: worker | join worker to cluster
   # noqa 305
   shell: "{{ hostvars.localhost.node_join_cmd }}"

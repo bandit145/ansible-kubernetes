@@ -10,6 +10,13 @@
     regexp: swap
     state: absent
 
+- name: main | modprobe load network modules
+  modprobe:
+    name: "{{ item }}"
+  loop:
+    - overlay
+    - br_netfilter
+
 # tasks file for ansible-kubernetes
 - name: main | prep sysctl for container runtime
   sysctl:
@@ -27,38 +34,42 @@
     src: "{{ item }}"
     dest: /etc/yum.repos.d/
   loop:
-    - docker-ce.repo
     - kubernetes.repo
+    - devel:kubic:libcontainers:stable.repo
+
+- name: main | copy crio repo
+  template:
+    src: devel:kubic:libcontainers:stable:cri-o.repo
+    dest: /etc/yum.repos.d/devel:kubic:libcontainers:stable:cri-o.repo
 
 - name: main | install base requirements
   yum:
     name:
-      - kubelet
-      - kubeadm
-      - kubectl
-      - docker-ce
-      - kubernetes-cni
+      - kubelet-{{ k8s_version }}
+      - kubeadm-{{ k8s_version }}
+      - kubectl-{{ k8s_version }}
+      - podman
+      - cri-o
       - kmod-wireguard
       - wireguard-tools
       - yum-utils
       - device-mapper-persistent-data
-      - python2-cryptography
       - lvm2
-    enablerepo: kubernetes,docker-ce-stable
+    enablerepo: kubernetes,devel_kubic_libcontainers_stable_cri-o
   register: installed_packages
+
+- name: main | copy crio config
+  copy:
+    src: crio.conf
+    dest: /etc/modules-load.d/crio.conf
 
 - name: main | reboot for wireguard kernel modules
   reboot:
   when: installed_packages.changed
 
-- name: main | copy docker daemon file
-  copy:
-    src: daemon.json
-    dest: /etc/docker/
-
-- name: main | start and enable docker
+- name: main | start and enable crio
   service:
-    name: docker
+    name: crio
     state: started
     enabled: true
 
@@ -105,15 +116,14 @@
   become: false
   any_errors_fatal: true
 
-- name: main | install kubevirt
-  include_tasks: kubevirt.yml
-  when: 
-    - k8s_kubevirt_install
+- name: main | run traefik install
+  include_tasks: ingress.yml
+  when:
     - hostvars[inventory_hostname].k8s_master is defined
     - inventory_hostname == operation_master
 
-- name: main | run nginx install
-  include_tasks: ingress.yml
+- name: main | install argocd
+  include_tasks: argocd.yml
   when:
     - hostvars[inventory_hostname].k8s_master is defined
     - inventory_hostname == operation_master

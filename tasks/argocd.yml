@@ -1,0 +1,26 @@
+---
+
+- name: argocd | create argocd namespace
+  k8s:
+    host: "https://{{ k8s_api_endpoint }}:6443"
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: argocd
+        labels:
+          name: argocd
+    kubeconfig: "{{ k8s_admin_config_location }}"
+    validate:
+      fail_on_error: true
+  delegate_to: localhost
+  become: false
+
+- name: argocd | install argocd
+  k8s:
+    host: "https://{{ k8s_api_endpoint }}:6443"
+    definition: "{{ lookup('url', 'https://raw.githubusercontent.com/argoproj/argo-cd/'+ k8s_argocd_version +'/manifests/install.yaml', split_lines=false) | from_yaml_all | list }}"
+    namespace: argocd
+    kubeconfig: "{{ k8s_admin_config_location }}"
+  delegate_to: localhost
+  become: false

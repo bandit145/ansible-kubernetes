@@ -5,14 +5,11 @@ driver:
   name: vagrant
   provider:
     name: virtualbox
-lint:
-  name: yamllint
-  options:
-    config-data:
-      ignore: "**/venv/"
+lint: |
+  ansible-lint .
 platforms:
   - name: master
-    box: bento/centos-7
+    box: centos/stream8
     interfaces:
         - network_name: private_network
           type: static
@@ -38,7 +35,7 @@ platforms:
     groups:
       - workers
     memory: 4096
-    box: bento/centos-7
+    box: centos/stream8
   - name: worker-2
     provider_raw_config_args:
       - "customize ['modifyvm', :id, '--nested-hw-virt', 'on']"
@@ -54,7 +51,7 @@ platforms:
       - workers
     memory: 4096
     cpus: 2
-    box: bento/centos-7
+    box: centos/stream8
 
 provisioner:
   name: ansible
