@@ -1,0 +1,14 @@
+---
+
+- name: verify k8s cluster
+  hosts: master
+  connection: local
+  tasks:
+
+    - name: gather details on cluster
+      set_fact:
+        nodes: "{{ lookup('community.kubernetes.k8s', kind='Node', kubeconfig='/tmp/kube_admin.conf') }}"s
+        traefik: "{{ lookup('community.kubernetes.k8s', kind='Deployment', namespace='traefik', kubeconfig='/tmp/kube_admin.conf') }}"
+
+    - debug:
+        var: calico_nodes

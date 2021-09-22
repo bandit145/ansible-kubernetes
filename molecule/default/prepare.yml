@@ -10,6 +10,13 @@
           - epel-release
           - elrepo-release
 
+    - name: update all packages
+      yum:
+        name: "*"
+        state: latest
+
+    - reboot:
+
     - name: set hostname
       hostname:
         name: "{{ inventory_hostname }}"

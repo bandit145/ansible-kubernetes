@@ -62,10 +62,4 @@ provisioner:
   lint:
     name: ansible-lint
 verifier:
-  name: testinfra
-  options:
-    log-cli-level: 20
-  lint:
-    name: flake8
-    options:
-      ignore: E501
+  name: ansible

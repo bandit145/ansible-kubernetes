@@ -88,7 +88,7 @@
   delegate_facts: true
   when: inventory_hostname == operation_master
 
-- name: worker | check if worker is online
+- name: main | check if worker is online
   k8s_info:
     host: "https://{{ k8s_api_endpoint }}:6443"
     kubeconfig: "{{ k8s_admin_config_location }}"
