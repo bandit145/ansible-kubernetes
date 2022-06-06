@@ -17,13 +17,15 @@
     kubeadm init --pod-network-cidr {{ k8s_pod_network_cidr }}
     --control-plane-endpoint {{ k8s_ctrl_plane_endpoint if k8s_ctrl_plane_endpoint is defined else ansible_default_ipv4.address }}
     --apiserver-advertise-address {{ k8s_api_endpoint if k8s_api_endpoint is defined else ansible_default_ipv4.address }}
+    --kubernetes-version {{ k8s_version }}
   args:
     creates: /etc/kubernetes/pki/ca.key
   when: inventory_hostname == operation_master
 
 - name: master | get calicoctl
+  # https://github.com/projectcalico/calico/releases/download/v3.22.0/calicoctl-linux-amd64
   get_url:
-    url: https://github.com/projectcalico/calicoctl/releases/download/v{{ calicoctl_version }}/calicoctl
+    url: https://github.com/projectcalico/calico/releases/download/v{{ calicoctl_version }}/calicoctl-linux-amd64
     dest: /usr/bin/
     mode: 0755
 

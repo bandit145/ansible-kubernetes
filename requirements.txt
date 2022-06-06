@@ -3,5 +3,5 @@ molecule
 jmespath
 openshift
 python-vagrant
-molecule-vagrant!=0.6.3
+molecule-vagrant
 kubernetes-validate

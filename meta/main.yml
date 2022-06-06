@@ -1,5 +1,5 @@
 galaxy_info:
-  author: Philip
+  author: bandit145
   description: deploy a k8s cluster
   company: none
 
@@ -30,7 +30,7 @@ galaxy_info:
   platforms:
   - name: CentOS
     versions:
-    - 7
+    - 8
   #   - 25
   # - name: SomePlatform
   #   versions:

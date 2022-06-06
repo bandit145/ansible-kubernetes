@@ -7,7 +7,7 @@
 
     - name: gather details on cluster
       set_fact:
-        nodes: "{{ lookup('community.kubernetes.k8s', kind='Node', kubeconfig='/tmp/kube_admin.conf') }}"s
+        nodes: "{{ lookup('community.kubernetes.k8s', kind='Node', kubeconfig='/tmp/kube_admin.conf') }}"
         traefik: "{{ lookup('community.kubernetes.k8s', kind='Deployment', namespace='traefik', kubeconfig='/tmp/kube_admin.conf') }}"
 
     - debug:

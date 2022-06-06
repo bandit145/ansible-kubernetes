@@ -11,8 +11,6 @@
         labels:
           name: argocd
     kubeconfig: "{{ k8s_admin_config_location }}"
-    validate:
-      fail_on_error: true
   delegate_to: localhost
   become: false
 

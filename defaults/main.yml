@@ -2,10 +2,10 @@
 # defaults file for ansible-kubernetes
 k8s_admin_config_location: /tmp/kube_admin.conf
 k8s_argocd_install: true
-k8s_version: 1.21.3
+k8s_version: 1.23.7
 k8s_argocd_version: stable
 
-calicoctl_version: 3.16.1
+calicoctl_version: 3.22.0
 wireguard_config:
   apiVersion: crd.projectcalico.org/v1
   kind: FelixConfiguration
